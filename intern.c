@@ -24,24 +24,24 @@ void intern_free(struct intern *pool)
     trie_free(pool->trie);
 }
 
+static void *inserter(const char *key, void *data, void *arg)
+{
+    char **dup = arg;
+    if (data == NULL) {
+        *dup = malloc(strlen(key) + 1);
+        if (*dup != NULL)
+            strcpy(*dup, key);
+        return *dup;
+    } else {
+        return (*dup = data);
+    }
+}
+
 const char *intern(struct intern *pool, const char *string)
 {
-    const char *data = trie_search(pool->trie, string);
-    if (data != NULL) {
-        return data;
-    } else {
-        char *dup = malloc(strlen(string) + 1);
-        if (dup == NULL)
-            return NULL;
-        strcpy(dup, string);
-        int r = trie_insert(pool->trie, string, dup);
-        if (r != 0) {
-            free(dup);
-            return NULL;
-        } else {
-            return dup;
-        }
-    }
+    char *canonical = NULL;
+    trie_replace(pool->trie, string, inserter, &canonical);
+    return canonical;
 }
 
 const char *intern_soft(struct intern *pool, const char *string)

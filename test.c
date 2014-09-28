@@ -26,7 +26,7 @@ int main(int argc, char **argv)
         }
     }
     printf("%zu words\n", trie_count(pool.trie, ""));
-    printf("'%s'\n", (char *) trie_search(pool.trie, argv[1]));
+    printf("'%s'\n", (char *) intern_soft(&pool, argv[1]));
     trie_visit(pool.trie, "xylot", visitor_print, NULL);
     intern_free(&pool);
     return 0;
