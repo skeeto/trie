@@ -200,7 +200,7 @@ trie_visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg)
     return r >= 0 ? 0 : -1;
 }
 
-static int counter(const char *key, void *data, void *arg)
+static int visitor_counter(const char *key, void *data, void *arg)
 {
     size_t *count = arg;
     count[0]++;
@@ -210,6 +210,6 @@ static int counter(const char *key, void *data, void *arg)
 size_t trie_count(trie_t *trie, const char *prefix)
 {
     size_t count = 0;
-    trie_visit(trie, prefix, counter, &count);
+    trie_visit(trie, prefix, visitor_counter, &count);
     return count;
 }
