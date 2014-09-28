@@ -149,7 +149,7 @@ static int
 visit(trie_t *trie, char *key, size_t *keysize, size_t depth,
       trie_visitor_t visitor, void *arg)
 {
-    if (*keysize == depth) {
+    if (*keysize == depth - 1) {
         *keysize *= 2;
         char *nextkey = realloc(key, *keysize);
         if (nextkey == NULL)
