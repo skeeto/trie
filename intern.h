@@ -30,4 +30,10 @@ intern(struct intern *pool, const char *string);
 const char *
 intern_soft(struct intern *pool, const char *string);
 
+/**
+ * @return the number of strings in this pool
+ */
+size_t
+intern_count(struct intern *pool);
+
 #endif

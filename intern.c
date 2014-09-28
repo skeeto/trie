@@ -48,3 +48,8 @@ const char *intern_soft(struct intern *pool, const char *string)
 {
     return trie_search(pool->trie, string);
 }
+
+size_t intern_count(struct intern *pool)
+{
+    return trie_count(pool->trie, "");
+}
