@@ -213,3 +213,12 @@ size_t trie_count(trie_t *trie, const char *prefix)
     trie_visit(trie, prefix, visitor_counter, &count);
     return count;
 }
+
+size_t trie_size(trie_t *trie)
+{
+    size_t size = sizeof(*trie) + sizeof(*trie->children) * trie->size;
+    for (int i = 0; i < trie->nchildren; i++) {
+        size += trie_size(trie->children[i].trie);
+    }
+    return size;
+}

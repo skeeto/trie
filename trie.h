@@ -63,4 +63,10 @@ trie_visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg);
 size_t
 trie_count(trie_t *trie, const char *prefix);
 
+/**
+ * @return the number of bytes of memory used by this trie
+ */
+size_t
+trie_size(trie_t *trie);
+
 #endif

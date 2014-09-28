@@ -26,6 +26,7 @@ int main(int argc, char **argv)
         }
     }
     printf("%zu words\n", intern_count(&pool));
+    printf("%0.2f MB\n", trie_size(pool.trie) / 1024.0 / 1024.0);
     printf("'%s'\n", (char *) intern_soft(&pool, argv[1]));
     trie_visit(pool.trie, "xylot", visitor_print, NULL);
     intern_free(&pool);
