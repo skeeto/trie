@@ -6,6 +6,7 @@
 typedef struct trie trie_t;
 
 typedef int (*trie_visitor_t)(const char *key, void *data, void *arg);
+typedef void *(*trie_replacer_t)(const char *key, void *current, void *arg);
 
 /**
  * @return a freshly allocated trie, NULL on allocation error
@@ -20,20 +21,29 @@ void
 trie_free(trie_t *trie);
 
 /**
- * Finds for the data associated with STRING.
+ * Finds for the data associated with KEY.
  * @return the previously inserted data
  */
 void *
-trie_search(const trie_t *trie, const char *string);
+trie_search(const trie_t *trie, const char *key);
 
 /**
- * Insert or replace DATA associated with STRING. Inserting NULL is
- * the equivalent of unassociating that key, though no memory will be
+ * Insert or replace DATA associated with KEY. Inserting NULL is the
+ * equivalent of unassociating that key, though no memory will be
  * released.
  * @return 0 on success
  */
 int
-trie_insert(trie_t *trie, const char *string, void *data);
+trie_insert(trie_t *trie, const char *key, void *data);
+
+/**
+ * Replace data associated with KEY using a replacer function. The
+ * replacer function gets the key, the original data (NULL if none)
+ * and ARG. Its return value is inserted into the trie.
+ * @return 0 on success
+ */
+int
+trie_replace(trie_t *trie, const char *key, trie_replacer_t f, void *arg);
 
 /**
  * Visit in lexicographical order each key that matches the prefix. An

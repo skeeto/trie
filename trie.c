@@ -120,7 +120,14 @@ static trie_t *create()
     return trie;
 }
 
-int trie_insert(trie_t *trie, const char *key, void *data)
+static void *identity(const char *key, void *data, void *arg)
+{
+    (void) key;
+    (void) data;
+    return arg;
+}
+
+int trie_replace(trie_t *trie, const char *key, trie_replacer_t f, void *arg)
 {
     trie_t *last;
     struct trieptr *parent;
@@ -141,8 +148,13 @@ int trie_insert(trie_t *trie, const char *key, void *data)
         last = subtrie;
         depth++;
     }
-    last->data = data;
+    last->data = f(key, last->data, arg);
     return 0;
+}
+
+int trie_insert(trie_t *trie, const char *key, void *data)
+{
+    return trie_replace(trie, key, identity, data);
 }
 
 static int
