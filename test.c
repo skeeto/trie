@@ -15,6 +15,12 @@
 /*     } */
 /* } */
 
+int visitor(const char *key, void *data, void *arg)
+{
+    printf("%s\n", key);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     struct trie *trie = trie_create();
@@ -26,8 +32,9 @@ int main(int argc, char **argv)
             return 1;
         }
     }
-    printf("%zu words\n", trie_count(trie));
+    printf("%zu words\n", trie_count(trie, ""));
     char *find = trie_search(trie, argv[1]);
     printf("'%s'\n", find);
+    trie_visit(trie, "xylot", visitor, NULL);
     return 0;
 }

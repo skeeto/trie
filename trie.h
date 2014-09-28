@@ -3,12 +3,21 @@
 
 typedef struct trie trie_t;
 
-trie_t *trie_create();
+typedef int (*trie_visitor_t)(const char *key, void *data, void *arg);
 
-void *trie_search(const trie_t *trie, const char *string);
+trie_t *
+trie_create();
 
-int trie_insert(trie_t *trie, const char *string, void *data);
+void *
+trie_search(const trie_t *trie, const char *string);
 
-size_t trie_count(trie_t *trie);
+int
+trie_insert(trie_t *trie, const char *string, void *data);
+
+int
+trie_visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg);
+
+size_t
+trie_count(trie_t *trie, const char *prefix);
 
 #endif
