@@ -1,6 +1,8 @@
 #ifndef NP_TRIE_H
 #define NP_TRIE_H
 
+#include <stddef.h>
+
 typedef struct trie trie_t;
 
 typedef int (*trie_visitor_t)(const char *key, void *data, void *arg);
