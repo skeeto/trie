@@ -5,6 +5,11 @@
 #include <errno.h>
 #include "trie.h"
 
+/* Mark recursive functions since they're somewhat dangerous. They'll
+ * fail when very long strings are inserted. TODO: Make these
+ * non-recursive by building a heap stack. */
+#define RECURSIVE
+
 struct trieptr {
     trie_t *trie;
     int c;
@@ -29,7 +34,7 @@ trie_t *trie_create()
     return root;
 }
 
-void trie_free(trie_t *trie)
+RECURSIVE void trie_free(trie_t *trie)
 {
     for (int i = 0; i < trie->nchildren; i++)
         trie_free(trie->children[i].trie);
@@ -157,7 +162,7 @@ int trie_insert(trie_t *trie, const char *key, void *data)
     return trie_replace(trie, key, identity, data);
 }
 
-static int
+RECURSIVE static int
 visit(trie_t *trie, char *key, size_t *keysize, size_t depth,
       trie_visitor_t visitor, void *arg)
 {
@@ -214,7 +219,7 @@ size_t trie_count(trie_t *trie, const char *prefix)
     return count;
 }
 
-size_t trie_size(trie_t *trie)
+RECURSIVE size_t trie_size(trie_t *trie)
 {
     size_t size = sizeof(*trie) + sizeof(*trie->children) * trie->size;
     for (int i = 0; i < trie->nchildren; i++) {
