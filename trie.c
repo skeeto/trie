@@ -29,6 +29,13 @@ trie_t *trie_create()
     return root;
 }
 
+void trie_free(trie_t *trie)
+{
+    for (int i = 0; i < trie->nchildren; i++)
+        trie_free(trie->children[i].trie);
+    free(trie);
+}
+
 static size_t
 binary_search(trie_t *trie, trie_t **child,
               struct trieptr **ptr, const char *key)

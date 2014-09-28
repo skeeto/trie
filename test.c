@@ -1,5 +1,6 @@
 #define _BSD_SOURCE
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "trie.h"
 
@@ -15,9 +16,15 @@
 /*     } */
 /* } */
 
-int visitor(const char *key, void *data, void *arg)
+int visitor_print(const char *key, void *data, void *arg)
 {
     printf("%s\n", key);
+    return 0;
+}
+
+int visitor_free(const char *key, void *data, void *arg)
+{
+    free(data);
     return 0;
 }
 
@@ -35,6 +42,8 @@ int main(int argc, char **argv)
     printf("%zu words\n", trie_count(trie, ""));
     char *find = trie_search(trie, argv[1]);
     printf("'%s'\n", find);
-    trie_visit(trie, "xylot", visitor, NULL);
+    trie_visit(trie, "xylot", visitor_print, NULL);
+    trie_visit(trie, "", visitor_free, NULL);
+    trie_free(trie);
     return 0;
 }

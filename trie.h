@@ -8,6 +8,9 @@ typedef int (*trie_visitor_t)(const char *key, void *data, void *arg);
 trie_t *
 trie_create();
 
+void
+trie_free(trie_t *trie);
+
 void *
 trie_search(const trie_t *trie, const char *string);
 
