@@ -291,9 +291,10 @@ visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg)
 {
     struct buffer buffer, *b = &buffer;
     struct stack stack, *s = &stack;
-    if (buffer_init(b, prefix) != 0 || stack_init(s) != 0) {
+    if (buffer_init(b, prefix) != 0)
+        return -1;
+    if (stack_init(s) != 0) {
         buffer_free(b);
-        stack_free(s);
         return -1;
     }
     stack_push(s, trie);
