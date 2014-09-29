@@ -287,11 +287,26 @@ size_t trie_count(trie_t *trie, const char *prefix)
     return count;
 }
 
-RECURSIVE size_t trie_size(trie_t *trie)
+size_t trie_size(trie_t *trie)
 {
-    size_t size = sizeof(*trie) + sizeof(*trie->children) * trie->size;
-    for (int i = 0; i < trie->nchildren; i++) {
-        size += trie_size(trie->children[i].trie);
+    struct stack stack, *s = &stack;
+    if (stack_init(s) != 0)
+        return 0;
+    stack_push(s, trie, 0);
+    size_t size = 0;
+    while (s->fill > 0) {
+        struct stack_node *node = stack_peek(s);
+        if (node->i < node->trie->nchildren) {
+            if (stack_push(s, node->trie->children[node->i].trie, 0) != 0) {
+                stack_free(s);
+                return 0;
+            }
+            node->i++;
+        } else {
+            struct trie *t = stack_pop(s);
+            size += sizeof(*t) + sizeof(*t->children) * t->size;
+        }
     }
+    stack_free(s);
     return size;
 }
