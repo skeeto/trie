@@ -1,4 +1,4 @@
-CFLAGS = -std=c99 -Wall -g3 -O3
+CFLAGS = -std=c99 -Wall -Wextra -g3 -O3
 
 test : test.o trie.o intern.o
 

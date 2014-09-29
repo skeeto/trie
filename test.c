@@ -6,12 +6,15 @@
 
 int visitor_print(const char *key, void *data, void *arg)
 {
+    (void) data;
+    (void) arg;
     printf("%s\n", key);
     return 0;
 }
 
 int main(int argc, char **argv)
 {
+    (void) argc;
     struct intern pool;
     if (intern_init(&pool) != 0) {
         fprintf(stderr, "error: intern pool failure\n");

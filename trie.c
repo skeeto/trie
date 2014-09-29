@@ -329,6 +329,8 @@ trie_visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg)
 
 static int visitor_counter(const char *key, void *data, void *arg)
 {
+    (void) key;
+    (void) data;
     size_t *count = arg;
     count[0]++;
     return 0;
