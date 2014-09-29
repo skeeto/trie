@@ -39,8 +39,9 @@ trie_create();
 
 /**
  * Destroys a trie created by trie_create().
+ * @return 0 on success
  */
-void
+int
 trie_free(trie_t *trie);
 
 /**

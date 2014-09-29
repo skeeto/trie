@@ -21,6 +21,59 @@ struct trie {
     struct trieptr children[];
 };
 
+struct stack_node {
+    trie_t *trie;
+    uint8_t i;
+};
+
+struct stack {
+    struct stack_node *stack;
+    size_t fill, size;
+};
+
+static inline int stack_init(struct stack *s)
+{
+    s->size = 256;
+    s->fill = 0;
+    s->stack = malloc(s->size * sizeof(struct stack_node));
+    return s->stack == NULL ? -1 : 0;
+}
+
+static inline void stack_free(struct stack *s)
+{
+    free(s->stack);
+}
+
+static inline int stack_grow(struct stack *s)
+{
+    size_t newsize = s->size * 2 * sizeof(struct stack_node);
+    struct stack_node *resize = realloc(s->stack, newsize);
+    if (resize == NULL)
+        return -1;
+    s->size *= 2;
+    s->stack = resize;
+    return 0;
+}
+
+static inline int stack_push(struct stack *s, trie_t *trie, int i)
+{
+    if (s->fill == s->size)
+        if (stack_grow(s) != 0)
+            return -1;
+    s->stack[s->fill++] = (struct stack_node){trie, i};
+    return 0;
+}
+
+static inline trie_t *stack_pop(struct stack *s)
+{
+    return s->stack[--s->fill].trie;
+}
+
+static inline struct stack_node *stack_peek(struct stack *s)
+{
+    return &s->stack[s->fill - 1];
+}
+
 trie_t *trie_create()
 {
     /* Root never needs to be resized. */
@@ -34,11 +87,24 @@ trie_t *trie_create()
     return root;
 }
 
-RECURSIVE void trie_free(trie_t *trie)
+int trie_free(trie_t *trie)
 {
-    for (int i = 0; i < trie->nchildren; i++)
-        trie_free(trie->children[i].trie);
-    free(trie);
+    struct stack stack, *s = &stack;
+    if (stack_init(s) != 0)
+        return errno;
+    stack_push(s, trie, 0); // first push always successful
+    while (s->fill > 0) {
+        struct stack_node *node = stack_peek(s);
+        if (node->i < node->trie->nchildren) {
+            if (stack_push(s, node->trie->children[node->i].trie, 0) != 0)
+                return errno;
+            node->i++;
+        } else {
+            free(stack_pop(s));
+        }
+    }
+    stack_free(s);
+    return 0;
 }
 
 static size_t
