@@ -30,8 +30,9 @@ intern_init(struct intern *pool);
 
 /**
  * Frees all resources held by an intern string pool.
+ * @return 0 on success
  */
-void
+int
 intern_free(struct intern *pool);
 
 /**

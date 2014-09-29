@@ -18,10 +18,10 @@ static int visitor_free(const char *key, void *data, void *arg)
     return 0;
 }
 
-void intern_free(struct intern *pool)
+int intern_free(struct intern *pool)
 {
     trie_visit(pool->trie, "", visitor_free, NULL);
-    trie_free(pool->trie);
+    return trie_free(pool->trie);
 }
 
 static void *inserter(const char *key, void *data, void *arg)
