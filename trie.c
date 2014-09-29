@@ -16,6 +16,8 @@ struct trie {
     struct trieptr children[];
 };
 
+/* Mini stack library for non-recursive traversal. */
+
 struct stack_node {
     trie_t *trie;
     uint8_t i;
@@ -72,6 +74,8 @@ static inline struct stack_node *stack_peek(struct stack *s)
     return &s->stack[s->fill - 1];
 }
 
+/* Constructor and destructor. */
+
 trie_t *trie_create()
 {
     /* Root never needs to be resized. */
@@ -104,6 +108,8 @@ int trie_free(trie_t *trie)
     stack_free(s);
     return 0;
 }
+
+/* Core search functions. */
 
 static size_t
 binary_search(trie_t *trie, trie_t **child,
@@ -145,6 +151,8 @@ void *trie_search(const trie_t *trie, const char *key)
     return key[depth] == '\0' ? child->data : NULL;
 }
 
+/* Insertion functions. */
+
 static trie_t *grow(trie_t *trie) {
     int size = trie->size * 2;
     if (size > 255)
@@ -155,7 +163,6 @@ static trie_t *grow(trie_t *trie) {
         return NULL;
     resized->size = size;
     return resized;
-
 }
 
 static int ptr_cmp(const void *a, const void *b)
@@ -226,6 +233,8 @@ int trie_insert(trie_t *trie, const char *key, void *data)
     return trie_replace(trie, key, identity, data);
 }
 
+/* Mini buffer library. */
+
 struct buffer {
     char *buffer;
     size_t size, fill;
@@ -274,6 +283,8 @@ static inline void buffer_pop(struct buffer *b)
     if (b->fill > 0)
         b->buffer[--b->fill] = '\0';
 }
+
+/* Core visitation functions. */
 
 static int
 visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg)
@@ -326,6 +337,8 @@ trie_visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg)
     int r = visit(start, prefix, visitor, arg);
     return r >= 0 ? 0 : -1;
 }
+
+/* Miscellaneous functions. */
 
 static int visitor_counter(const char *key, void *data, void *arg)
 {
