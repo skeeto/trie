@@ -18,9 +18,6 @@
  * Except for trie_free(), memory is never freed by the trie, even
  * when entries are "removed" by associating a NULL pointer.
  *
- * Warning: currently some trie functions are recursive, effectively
- * placing an upper limit on key length.
- *
  * @see http://en.wikipedia.org/wiki/Trie
  */
 

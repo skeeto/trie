@@ -5,11 +5,6 @@
 #include <errno.h>
 #include "trie.h"
 
-/* Mark recursive functions since they're somewhat dangerous. They'll
- * fail when very long strings are inserted. TODO: Make these
- * non-recursive by building a heap stack. */
-#define RECURSIVE
-
 struct trieptr {
     trie_t *trie;
     int c;
@@ -42,25 +37,28 @@ static inline int stack_init(struct stack *s)
 static inline void stack_free(struct stack *s)
 {
     free(s->stack);
+    s->stack = NULL;
 }
 
 static inline int stack_grow(struct stack *s)
 {
     size_t newsize = s->size * 2 * sizeof(struct stack_node);
     struct stack_node *resize = realloc(s->stack, newsize);
-    if (resize == NULL)
+    if (resize == NULL) {
+        stack_free(s);
         return -1;
+    }
     s->size *= 2;
     s->stack = resize;
     return 0;
 }
 
-static inline int stack_push(struct stack *s, trie_t *trie, int i)
+static inline int stack_push(struct stack *s, trie_t *trie)
 {
     if (s->fill == s->size)
         if (stack_grow(s) != 0)
             return -1;
-    s->stack[s->fill++] = (struct stack_node){trie, i};
+    s->stack[s->fill++] = (struct stack_node){trie, 0};
     return 0;
 }
 
@@ -92,14 +90,12 @@ int trie_free(trie_t *trie)
     struct stack stack, *s = &stack;
     if (stack_init(s) != 0)
         return errno;
-    stack_push(s, trie, 0); // first push always successful
+    stack_push(s, trie); // first push always successful
     while (s->fill > 0) {
         struct stack_node *node = stack_peek(s);
         if (node->i < node->trie->nchildren) {
-            if (stack_push(s, node->trie->children[node->i].trie, 0) != 0) {
-                stack_free(s);
+            if (stack_push(s, node->trie->children[node->i].trie) != 0)
                 return errno;
-            }
             node->i++;
         } else {
             free(stack_pop(s));
@@ -230,28 +226,92 @@ int trie_insert(trie_t *trie, const char *key, void *data)
     return trie_replace(trie, key, identity, data);
 }
 
-RECURSIVE static int
-visit(trie_t *trie, char **key, size_t *keysize, size_t depth,
-      trie_visitor_t visitor, void *arg)
+struct buffer {
+    char *buffer;
+    size_t size, fill;
+};
+
+static inline int buffer_init(struct buffer *b, const char *prefix)
 {
-    if (*keysize < depth + 2) {
-        *keysize = depth * 2;
-        char *nextkey = realloc(*key, *keysize);
-        if (nextkey == NULL)
+    b->fill = strlen(prefix);
+    b->size = b->fill > 256 ? b->fill * 2 : 256;
+    b->buffer = malloc(b->size);
+    if (b->buffer != NULL)
+        strcpy(b->buffer, prefix);
+    return b->buffer == NULL ? -1 : 0;
+}
+
+static inline void buffer_free(struct buffer *b)
+{
+    free(b->buffer);
+    b->buffer = NULL;
+}
+
+static inline int buffer_grow(struct buffer *b)
+{
+    char *resize = realloc(b->buffer, b->size * 2);
+    if (resize == NULL) {
+        buffer_free(b);
+        return -1;
+    }
+    b->buffer = resize;
+    b->size *= 2;
+    return 0;
+}
+
+static inline int buffer_push(struct buffer *b, char c)
+{
+    if (b->fill + 1 == b->size)
+        if (buffer_grow(b) != 0)
             return -1;
-        *key = nextkey;
+    b->buffer[b->fill++] = c;
+    b->buffer[b->fill] = '\0';
+    return 0;
+}
+
+static inline void buffer_pop(struct buffer *b)
+{
+    if (b->fill > 0)
+        b->buffer[--b->fill] = '\0';
+}
+
+static int
+visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg)
+{
+    struct buffer buffer, *b = &buffer;
+    struct stack stack, *s = &stack;
+    if (buffer_init(b, prefix) != 0 || stack_init(s) != 0) {
+        buffer_free(b);
+        stack_free(s);
+        return -1;
     }
-    if (trie->data)
-        if (visitor(*key, trie->data, arg) != 0)
-            return 1;
-    (*key)[depth + 1] = '\0';
-    for (int i = 0; i < trie->nchildren; i++) {
-        (*key)[depth] = trie->children[i].c;
-        trie_t *child = trie->children[i].trie;
-        int r = visit(child, key, keysize, depth + 1, visitor, arg);
-        if (r != 0)
-            return r;
+    stack_push(s, trie);
+    while (s->fill > 0) {
+        struct stack_node *node = stack_peek(s);
+        if (node->i == 0 && node->trie->data != NULL) {
+            if (visitor(b->buffer, node->trie->data, arg) != 0) {
+                buffer_free(b);
+                stack_free(s);
+                return 1;
+            }
+        }
+        if (node->i < node->trie->nchildren) {
+            if (stack_push(s, node->trie->children[node->i].trie) != 0) {
+                buffer_free(b);
+                return -1;
+            }
+            if (buffer_push(b, node->trie->children[node->i].c) != 0) {
+                stack_free(s);
+                return -1;
+            }
+            node->i++;
+        } else {
+            buffer_pop(b);
+            stack_pop(s);
+        }
     }
+    buffer_free(b);
+    stack_free(s);
     return 0;
 }
 
@@ -263,13 +323,7 @@ trie_visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg)
     int depth = binary_search(trie, &start, &ptr, prefix);
     if (prefix[depth] != '\0')
         return 0;
-    size_t keysize = depth * 2 + 16;
-    char *key = malloc(keysize);
-    if (key == NULL)
-        return errno;
-    strcpy(key, prefix);
-    int r = visit(start, &key, &keysize, depth, visitor, arg);
-    free(key);
+    int r = visit(start, prefix, visitor, arg);
     return r >= 0 ? 0 : -1;
 }
 
@@ -292,15 +346,13 @@ size_t trie_size(trie_t *trie)
     struct stack stack, *s = &stack;
     if (stack_init(s) != 0)
         return 0;
-    stack_push(s, trie, 0);
+    stack_push(s, trie);
     size_t size = 0;
     while (s->fill > 0) {
         struct stack_node *node = stack_peek(s);
         if (node->i < node->trie->nchildren) {
-            if (stack_push(s, node->trie->children[node->i].trie, 0) != 0) {
-                stack_free(s);
+            if (stack_push(s, node->trie->children[node->i].trie) != 0)
                 return 0;
-            }
             node->i++;
         } else {
             struct trie *t = stack_pop(s);
