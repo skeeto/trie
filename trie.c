@@ -96,8 +96,10 @@ int trie_free(trie_t *trie)
     while (s->fill > 0) {
         struct stack_node *node = stack_peek(s);
         if (node->i < node->trie->nchildren) {
-            if (stack_push(s, node->trie->children[node->i].trie, 0) != 0)
+            if (stack_push(s, node->trie->children[node->i].trie, 0) != 0) {
+                stack_free(s);
                 return errno;
+            }
             node->i++;
         } else {
             free(stack_pop(s));
