@@ -163,27 +163,27 @@ int trie_insert(trie_t *trie, const char *key, void *data)
 }
 
 RECURSIVE static int
-visit(trie_t *trie, char *key, size_t *keysize, size_t depth,
+visit(trie_t *trie, char **key, size_t *keysize, size_t depth,
       trie_visitor_t visitor, void *arg)
 {
-    if (*keysize == depth - 1) {
-        *keysize *= 2;
-        char *nextkey = realloc(key, *keysize);
+    if (*keysize < depth + 2) {
+        *keysize = depth * 2;
+        char *nextkey = realloc(*key, *keysize);
         if (nextkey == NULL)
             return -1;
-        key = nextkey;
+        *key = nextkey;
     }
     if (trie->data)
-        if (visitor(key, trie->data, arg) != 0)
+        if (visitor(*key, trie->data, arg) != 0)
             return 1;
+    (*key)[depth + 1] = '\0';
     for (int i = 0; i < trie->nchildren; i++) {
-        key[depth] = trie->children[i].c;
+        (*key)[depth] = trie->children[i].c;
         trie_t *child = trie->children[i].trie;
         int r = visit(child, key, keysize, depth + 1, visitor, arg);
         if (r != 0)
             return r;
     }
-    key[depth] = '\0';
     return 0;
 }
 
@@ -195,12 +195,12 @@ trie_visit(trie_t *trie, const char *prefix, trie_visitor_t visitor, void *arg)
     int depth = binary_search(trie, &start, &ptr, prefix);
     if (prefix[depth] != '\0')
         return 0;
-    size_t keysize = strlen(prefix) * 4 + 1;
-    char *key = calloc(keysize, 1);
+    size_t keysize = depth * 2 + 16;
+    char *key = malloc(keysize);
     if (key == NULL)
         return errno;
     strcpy(key, prefix);
-    int r = visit(start, key, &keysize, depth, visitor, arg);
+    int r = visit(start, &key, &keysize, depth, visitor, arg);
     free(key);
     return r >= 0 ? 0 : -1;
 }
