@@ -1,5 +1,4 @@
-#ifndef NP_INTERN_H
-#define NP_INTERN_H
+#pragma once
 
 /**
  * String Pool Library
@@ -54,5 +53,3 @@ intern_soft(struct intern *pool, const char *string);
  */
 size_t
 intern_count(struct intern *pool);
-
-#endif

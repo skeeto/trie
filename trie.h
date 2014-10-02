@@ -1,5 +1,4 @@
-#ifndef NP_TRIE_H
-#define NP_TRIE_H
+#pragma once
 
 /**
  * C99 Trie Library
@@ -89,5 +88,3 @@ trie_count(trie_t *trie, const char *prefix);
  */
 size_t
 trie_size(trie_t *trie);
-
-#endif
