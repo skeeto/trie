@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TRIE_H
+#define TRIE_H
 
 /**
  * C99 Trie Library
@@ -22,7 +23,7 @@
 
 #include <stddef.h>
 
-typedef struct trie trie;
+struct trie;
 
 typedef int (*trie_visitor)(const char *key, void *data, void *arg);
 typedef void *(*trie_replacer)(const char *key, void *current, void *arg);
@@ -30,19 +31,19 @@ typedef void *(*trie_replacer)(const char *key, void *current, void *arg);
 /**
  * @return a freshly allocated trie, NULL on allocation error
  */
-trie *trie_create(void);
+struct trie *trie_create(void);
 
 /**
  * Destroys a trie created by trie_create().
  * @return 0 on success
  */
-int trie_free(trie *trie);
+int trie_free(struct trie *);
 
 /**
  * Finds for the data associated with KEY.
  * @return the previously inserted data
  */
-void *trie_search(const trie *trie, const char *key);
+void *trie_search(const struct trie *, const char *key);
 
 /**
  * Insert or replace DATA associated with KEY. Inserting NULL is the
@@ -50,7 +51,7 @@ void *trie_search(const trie *trie, const char *key);
  * released.
  * @return 0 on success
  */
-int trie_insert(trie *trie, const char *key, void *data);
+int trie_insert(struct trie *, const char *key, void *data);
 
 /**
  * Replace data associated with KEY using a replacer function. The
@@ -58,7 +59,7 @@ int trie_insert(trie *trie, const char *key, void *data);
  * and ARG. Its return value is inserted into the trie.
  * @return 0 on success
  */
-int trie_replace(trie *trie, const char *key, trie_replacer f, void *arg);
+int trie_replace(struct trie *, const char *key, trie_replacer f, void *arg);
 
 /**
  * Visit in lexicographical order each key that matches the prefix. An
@@ -67,16 +68,18 @@ int trie_replace(trie *trie, const char *key, trie_replacer f, void *arg);
  * (with success) if visitor returns non-zero.
  * @return 0 on success
  */
-int trie_visit(trie *trie, const char *prefix, trie_visitor v, void *arg);
+int trie_visit(struct trie *, const char *prefix, trie_visitor v, void *arg);
 
 /**
  * Count the number of entries with a given prefix. An empty prefix
  * counts the entire trie.
  * @return the number of entries matching PREFIX
  */
-size_t trie_count(trie *trie, const char *prefix);
+size_t trie_count(struct trie *, const char *prefix);
 
 /**
  * @return the number of bytes of memory used by this trie
  */
-size_t trie_size(trie *trie);
+size_t trie_size(struct trie *);
+
+#endif

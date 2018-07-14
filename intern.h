@@ -17,7 +17,7 @@
  */
 
 struct intern {
-    trie *trie;
+    struct trie *trie;
 };
 
 /**

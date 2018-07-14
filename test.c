@@ -28,9 +28,12 @@ int main(int argc, char **argv)
             return 1;
         }
     }
+
+    const char *search = argv[1] ? argv[1] : "";
+    const char *result = intern_soft(&pool, search);
     printf("%zu words\n", intern_count(&pool));
     printf("%0.2f MB\n", trie_size(pool.trie) / 1024.0 / 1024.0);
-    printf("'%s'\n", (char *) intern_soft(&pool, argv[1]));
+    printf("'%s'\n", result ? result : "(null)");
     if (trie_visit(pool.trie, "xylot", visitor_print, NULL) != 0) {
         printf("error: visit failure\n");
         return 1;
