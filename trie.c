@@ -103,9 +103,9 @@ trie_free(struct trie *trie)
     while (s->fill > 0) {
         struct stack_node *node = stack_peek(s);
         if (node->i < node->trie->nchildren) {
-            if (stack_push(s, node->trie->children[node->i].trie) != 0)
+            int i = node->i++;
+            if (stack_push(s, node->trie->children[i].trie) != 0)
                 return 1;
-            node->i++;
         } else {
             free(stack_pop(s));
         }
@@ -326,15 +326,17 @@ visit(struct trie *self, const char *prefix, trie_visitor visitor, void *arg)
             }
         }
         if (node->i < node->trie->nchildren) {
-            if (stack_push(s, node->trie->children[node->i].trie) != 0) {
+            struct trie *trie = node->trie->children[node->i].trie;
+            int c = node->trie->children[node->i].c;
+            node->i++;
+            if (stack_push(s, trie) != 0) {
                 buffer_free(b);
                 return -1;
             }
-            if (buffer_push(b, node->trie->children[node->i].c) != 0) {
+            if (buffer_push(b, c) != 0) {
                 stack_free(s);
                 return -1;
             }
-            node->i++;
         } else {
             buffer_pop(b);
             stack_pop(s);
