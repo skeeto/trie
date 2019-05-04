@@ -389,10 +389,10 @@ trie_size(struct trie *trie)
     size_t size = 0;
     while (s->fill > 0) {
         struct stack_node *node = stack_peek(s);
-        if (node->i < node->trie->nchildren) {
-            if (stack_push(s, node->trie->children[node->i].trie) != 0)
+        int i = node->i++;
+        if (i < node->trie->nchildren) {
+            if (stack_push(s, node->trie->children[i].trie) != 0)
                 return 0;
-            node->i++;
         } else {
             struct trie *t = stack_pop(s);
             size += sizeof(*t) + sizeof(*t->children) * t->size;
