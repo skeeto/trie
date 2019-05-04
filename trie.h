@@ -11,8 +11,8 @@
  * by a string prefix. An empty prefix "" matches all keys (the prefix
  * argument should never be NULL).
  *
- * Except for trie_free(), memory is never freed by the trie, even when
- * entries are "removed" by associating a NULL pointer.
+ * Except for trie_free() and trie_prune(), memory is never freed by the
+ * trie, even when entries are "removed" by associating a NULL pointer.
  *
  * @see http://en.wikipedia.org/wiki/Trie
  */
