@@ -1,9 +1,15 @@
-CFLAGS = -std=c99 -Wall -Wextra -g3 -O3
+.POSIX:
+CC      = cc
+CFLAGS  = -std=c99 -Wall -Wextra -ggdb3 -O3 \
+    -fsanitize=address -fsanitize=undefined
+LDFLAGS =
+LDLIBS  =
 
-test : test.o trie.o intern.o
+tests: tests.c trie.c trie.h
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ tests.c trie.c $(LDLIBS)
 
-run : test
-	./$^ xylotile < /usr/share/dict/american-english-insane
+check: tests
+	./tests
 
-clean :
-	$(RM) test *.o
+clean:
+	rm -f tests
