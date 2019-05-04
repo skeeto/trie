@@ -1,8 +1,12 @@
 # C99 Trie Library
 
 This is a fast, efficient [trie](https://en.wikipedia.org/wiki/Trie)
-implementation. It serves well as a string-key hash table. See
-`trie.h` for complete API documentation.
+implementation. It serves well as a string-key hash table. All
+operations use an internal stack, so there is no recursion.
+
+## API
+
+See `trie.h` for complete API documentation.
 
 ~~~c
 trie * trie_create(void);

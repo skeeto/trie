@@ -4,19 +4,15 @@
 /**
  * C99 Trie Library
  *
- * This trie associates an arbitrary void* pointer with a UTF-8,
- * NUL-terminated C string key. All lookups are O(n), n being the
- * length of the string. Strings are stored sorted, so visitor
- * functions visit keys in lexicographical order. The visitor can also
- * be used to visit keys by a string prefix. An empty prefix ""
- * matches all keys (the prefix argument should never be NULL).
+ * This trie associates an arbitrary void pointer with a NUL-terminated
+ * C string key. All lookups are O(n), n being the length of the string.
+ * Strings are stored in sorted order, so visitor functions visit keys
+ * in lexicographical order. The visitor can also be used to visit keys
+ * by a string prefix. An empty prefix "" matches all keys (the prefix
+ * argument should never be NULL).
  *
- * Internally it uses flexible array members, which is why C99 is
- * required, and is why the initialization function returns a pointer
- * rather than fills a provided struct.
- *
- * Except for trie_free(), memory is never freed by the trie, even
- * when entries are "removed" by associating a NULL pointer.
+ * Except for trie_free(), memory is never freed by the trie, even when
+ * entries are "removed" by associating a NULL pointer.
  *
  * @see http://en.wikipedia.org/wiki/Trie
  */
