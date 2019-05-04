@@ -118,12 +118,12 @@ trie_free(struct trie *trie)
 
 static size_t
 binary_search(struct trie *self, struct trie **child,
-              struct trieptr **ptr, const char *key)
+              struct trieptr **ptr, const unsigned char *key)
 {
     size_t i = 0;
     int found = 1;
     *ptr = NULL;
-    while (found && key[i] != '\0') {
+    while (found && key[i]) {
         int first = 0;
         int last = self->nchildren - 1;
         int middle;
@@ -153,8 +153,9 @@ trie_search(const struct trie *self, const char *key)
 {
     struct trie *child;
     struct trieptr *parent;
-    size_t depth = binary_search((struct trie *)self, &child, &parent, key);
-    return key[depth] == '\0' ? child->data : NULL;
+    unsigned char *ukey = (unsigned char *)key;
+    size_t depth = binary_search((struct trie *)self, &child, &parent, ukey);
+    return !key[depth] ? child->data : NULL;
 }
 
 /* Insertion functions. */
@@ -209,8 +210,8 @@ create(void)
 static void *
 identity(const char *key, void *data, void *arg)
 {
-    (void) key;
-    (void) data;
+    (void)key;
+    (void)data;
     return arg;
 }
 
@@ -219,12 +220,13 @@ trie_replace(struct trie *self, const char *key, trie_replacer f, void *arg)
 {
     struct trie *last;
     struct trieptr *parent;
-    size_t depth = binary_search(self, &last, &parent, key);
-    while (key[depth] != '\0') {
+    unsigned char *ukey = (unsigned char *)key;
+    size_t depth = binary_search(self, &last, &parent, ukey);
+    while (ukey[depth]) {
         struct trie *subtrie = create();
         if (subtrie == NULL)
             return 1;
-        struct trie *added = add(last, key[depth], subtrie);
+        struct trie *added = add(last, ukey[depth], subtrie);
         if (added == NULL) {
             free(subtrie);
             return 1;
@@ -291,7 +293,7 @@ buffer_push(struct buffer *b, char c)
         if (buffer_grow(b) != 0)
             return -1;
     b->buffer[b->fill++] = c;
-    b->buffer[b->fill] = '\0';
+    b->buffer[b->fill] = 0;
     return 0;
 }
 
@@ -299,7 +301,7 @@ static inline void
 buffer_pop(struct buffer *b)
 {
     if (b->fill > 0)
-        b->buffer[--b->fill] = '\0';
+        b->buffer[--b->fill] = 0;
 }
 
 /* Core visitation functions. */
@@ -352,8 +354,9 @@ trie_visit(struct trie *self, const char *prefix, trie_visitor v, void *arg)
 {
     struct trie *start = self;
     struct trieptr *ptr;
-    int depth = binary_search(self, &start, &ptr, prefix);
-    if (prefix[depth] != '\0')
+    unsigned char *uprefix = (unsigned char *)prefix;
+    int depth = binary_search(self, &start, &ptr, uprefix);
+    if (prefix[depth])
         return 0;
     int r = visit(start, prefix, v, arg);
     return r >= 0 ? 0 : -1;
