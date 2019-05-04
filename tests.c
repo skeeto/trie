@@ -74,7 +74,6 @@ int
 main(void)
 {
     uint64_t rng = 0xabf4206f849fdf21;
-
     struct trie *t = trie_create();
 
     for (int i = 0; i < 1 << EXP_TOTAL; i++) {
@@ -99,9 +98,23 @@ main(void)
             free(key);
         }
 
+        /* Check that keys are sorted (visitor) */
         char *prev = 0;
         if (trie_visit(t, "", check_order, &prev))
             die("out of memory");
+
+        /* Check that keys are sorted (iterator) */
+        prev = 0;
+        struct trie_it *it = trie_it_create(t, "");
+        for (; !trie_it_done(it); trie_it_next(it)) {
+            const char *key = trie_it_key(it);
+            if (prev && strcmp(prev, key) >= 0)
+                die("FAIL: keys not ordered");
+            prev = trie_it_data(it);
+        }
+        if (trie_it_error(it))
+            die("out of memory");
+        trie_it_free(it);
 
         /* Remove all entries. */
         rngcopy = rngsave;

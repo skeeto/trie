@@ -20,6 +20,7 @@
 #include <stddef.h>
 
 struct trie;
+struct trie_it;
 
 typedef int (*trie_visitor)(const char *key, void *data, void *arg);
 typedef void *(*trie_replacer)(const char *key, void *current, void *arg);
@@ -84,5 +85,46 @@ size_t trie_count(struct trie *, const char *prefix);
  * @return the size in bytes, or 0 on error
  */
 size_t trie_size(struct trie *);
+
+/**
+ * Create an iterator that visits each key with the given prefix, in
+ * lexicographical order. Making any modifications to the trie
+ * invalidates the iterator.
+ * @return a fresh iterator pointing to the first key
+ */
+struct trie_it *trie_it_create(struct trie *, const char *prefix);
+
+/**
+ * Advance iterator to the next key in the sequence.
+ * @return 0 if done, else 1
+ */
+int trie_it_next(struct trie_it *);
+
+/**
+ * Returned buffer is invalidated on the next trie_it_next().
+ * @return a buffer containing the current key
+ */
+const char *trie_it_key(struct trie_it *);
+
+/**
+ * @return the data pointer for the current key
+ */
+void *trie_it_data(struct trie_it *);
+
+/**
+ * @return 1 if the iterator has completed (including errors)
+ */
+int trie_it_done(struct trie_it *);
+
+/**
+ * @return 1 if the iterator experienced an error
+ */
+int trie_it_error(struct trie_it *);
+
+/**
+ * Destroys the iterator.
+ * @return 0 on success
+ */
+void trie_it_free(struct trie_it *);
 
 #endif
