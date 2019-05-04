@@ -5,7 +5,7 @@
 #include "trie.h"
 
 #define EXP_TOTAL 5
-#define EXP_WORDS 11
+#define EXP_WORDS 13
 
 static void
 die(const char *s)
@@ -76,6 +76,7 @@ main(void)
     uint64_t rng = 0xabf4206f849fdf21;
 
     struct trie *t = trie_create();
+
     for (int i = 0; i < 1 << EXP_TOTAL; i++) {
         long count = (1L << EXP_WORDS) + pcg32(&rng) % (1L << EXP_WORDS);
         uint64_t rngsave = rng;
@@ -124,6 +125,21 @@ main(void)
         /* Print out current trie size (as progress) */
         double mb = trie_size(t) / 1024.0 / 1024.0;
         printf("%-2d trie_size() = %10.3f MiB\n", i, mb);
+
+        /* Prune trie every quarter. */
+        if (i && i % (1 << (EXP_TOTAL - 2)) == 0) {
+            /* Insert a check key to make sure it survives. */
+            char tmpkey[32];
+            unsigned long long v = rngsave;
+            snprintf(tmpkey, sizeof(tmpkey), "%llx", v);
+            if (trie_insert(t, tmpkey, tmpkey))
+                die("out of memory");
+            trie_prune(t);
+            if (trie_search(t, tmpkey) != tmpkey)
+                die("FAIL: trie_prune() removed live key");
+            trie_insert(t, tmpkey, 0); /* Cleanup */
+        }
     }
+
     trie_free(t);
 }

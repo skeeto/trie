@@ -194,6 +194,13 @@ add(struct trie *self, int c, struct trie *child)
     return self;
 }
 
+static void
+remove(struct trie *self, int i)
+{
+    size_t len = (--self->nchildren - i) * sizeof(self->children[0]);
+    memmove(self->children + i, self->children + i + 1, len);
+}
+
 static struct trie *
 create(void)
 {
@@ -380,6 +387,34 @@ trie_count(struct trie *trie, const char *prefix)
     size_t count = 0;
     trie_visit(trie, prefix, visitor_counter, &count);
     return count;
+}
+
+int
+trie_prune(struct trie *trie)
+{
+    struct stack stack, *s = &stack;
+    if (stack_init(s) != 0)
+        return -1;
+    stack_push(s, trie);
+    while (s->fill > 0) {
+        struct stack_node *node = stack_peek(s);
+        int i = node->i++;
+        if (i < node->trie->nchildren) {
+            if (stack_push(s, node->trie->children[i].trie) != 0)
+                return 0;
+        } else {
+            struct trie *t = stack_pop(s);
+            for (int i = 0; i < t->nchildren; i++) {
+                struct trie *child = t->children[i].trie;
+                if (!child->nchildren && !child->data) {
+                    remove(t, i--);
+                    free(child);
+                }
+            }
+        }
+    }
+    stack_free(s);
+    return 1;
 }
 
 size_t

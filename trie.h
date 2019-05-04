@@ -67,6 +67,12 @@ int trie_replace(struct trie *, const char *key, trie_replacer f, void *arg);
 int trie_visit(struct trie *, const char *prefix, trie_visitor v, void *arg);
 
 /**
+ * Remove all unused branches in a trie.
+ * @return 0 on success
+ */
+int trie_prune(struct trie *);
+
+/**
  * Count the number of entries with a given prefix. An empty prefix
  * counts the entire trie.
  * @return the number of entries matching PREFIX
@@ -74,7 +80,8 @@ int trie_visit(struct trie *, const char *prefix, trie_visitor v, void *arg);
 size_t trie_count(struct trie *, const char *prefix);
 
 /**
- * @return the number of bytes of memory used by this trie
+ * Compute the total memory usage of a trie.
+ * @return the size in bytes, or 0 on error
  */
 size_t trie_size(struct trie *);
 

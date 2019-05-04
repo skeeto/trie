@@ -15,6 +15,7 @@ void * trie_search(const trie *trie, const char *key);
 int    trie_insert(trie *trie, const char *key, void *data);
 int    trie_replace(trie *trie, const char *key, trie_replacer f, void *arg);
 int    trie_visit(trie *trie, const char *prefix, trie_visitor v, void *arg);
+int    trie_prune(trie *trie);
 size_t trie_count(trie *trie, const char *prefix);
 size_t trie_size(trie *trie);
 ~~~
